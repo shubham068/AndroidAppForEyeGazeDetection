@@ -1,9 +1,15 @@
 package cz.nakoncisveta.eyetracksample.eyedetect;
 
-import android.app.Activity;
+
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.os.Bundle;
+//import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.app.Activity;
+//import android.content.Context;
+//import android.os.Bundle;
+//import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -28,11 +34,14 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.objdetect.Objdetect;
+import org.opencv.dnn.Net;
+import org.opencv.dnn.Dnn;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.BufferedInputStream;
 
 
 public class MainActivity extends Activity implements CvCameraViewListener2 {
@@ -49,6 +58,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
     private static final int grid_W =25;
     private static final int grid_H =25;
+
+    private Net net;
 
 
 
@@ -257,9 +268,36 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         mOpenCvCameraView.disableView();
     }
 
+    // Upload file to storage and return a path.
+    private static String getPath(String file, Context context) {
+        AssetManager assetManager = context.getAssets();
+        BufferedInputStream inputStream = null;
+        try {
+            // Read data from assets.
+            inputStream = new BufferedInputStream(assetManager.open(file));
+            byte[] data = new byte[inputStream.available()];
+            inputStream.read(data);
+            inputStream.close();
+            // Create copy file in storage.
+            File outFile = new File(context.getFilesDir(), file);
+            FileOutputStream os = new FileOutputStream(outFile);
+            os.write(data);
+            os.close();
+            // Return a path to file which may be read in common way.
+            return outFile.getAbsolutePath();
+        } catch (IOException ex) {
+            Log.i(TAG, "Failed to upload a file");
+        }
+        return "";
+    }
+
     public void onCameraViewStarted(int width, int height) {
         mGray = new Mat();
         mRgba = new Mat();
+        String proto = getPath("MobileNetSSD_deploy.prototxt", this);
+        String weights = getPath("MobileNetSSD_deploy.caffemodel", this);
+        net = Dnn.readNetFromCaffe(proto, weights);
+        Log.i(TAG, "Network loaded successfully");
     }
 
     public void onCameraViewStopped() {
