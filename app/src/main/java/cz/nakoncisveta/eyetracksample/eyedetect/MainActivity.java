@@ -76,6 +76,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     private Mat leftEye;
     private Mat rightEye;
     private Mat faceGrid;
+    private Mat faceCrop;
 
     private MenuItem               mItemFace50;
     private MenuItem               mItemFace40;
@@ -294,8 +295,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     public void onCameraViewStarted(int width, int height) {
         mGray = new Mat();
         mRgba = new Mat();
-        String proto = getPath("MobileNetSSD_deploy.prototxt", this);
-        String weights = getPath("MobileNetSSD_deploy.caffemodel", this);
+        String proto = getPath("itracker_deploy.prototxt", this);
+        String weights = getPath("itracker_iter_92000.caffemodel", this);
         net = Dnn.readNetFromCaffe(proto, weights);
         Log.i(TAG, "Network loaded successfully");
     }
@@ -310,6 +311,12 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
+
+        final double IN_SCALE_FACTOR = 0.00392;
+        final Scalar LEFT_MEAN = new Scalar(97.51549, 105.81452, 141.6497);
+        final Scalar RIGHT_MEAN = new Scalar(93.25924,102.083084, 135.04556);
+        final Scalar FACE_MEAN = new Scalar(100.9692, 112.32869, 148.36621);
+        final Size size = new Size(224, 224);
 
         mRgba = inputFrame.rgba();
         mGray = inputFrame.gray();
@@ -394,9 +401,26 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             leftEye = mRgba.submat(eyearea_left);
 
             rightEye = mRgba.submat(eyearea_right);
+
+            faceCrop = mRgba.submat(r);
+
 //            Log.d("PRINT", ( String.valueOf(leftEye.get(0, 0)[0])));
            /* org.opencv.core.Core.subtract(leftEye, new Scalar(255,255,255), leftEye);
             Log.d("PRINT", ( String.valueOf(leftEye.get(100, 100)[0])));*/
+
+            Mat lefteyeblob = Dnn.blobFromImage(leftEye, IN_SCALE_FACTOR, size, LEFT_MEAN, true, true); // CHECKKARNAHAI see whether to swap R and B
+            Mat righteyeblob = Dnn.blobFromImage(rightEye, IN_SCALE_FACTOR, size, RIGHT_MEAN, true, true);
+            Mat faceblob = Dnn.blobFromImage(faceCrop, IN_SCALE_FACTOR, size, FACE_MEAN, true, true);
+            faceGrid = getFaceGrid(r, mRgba);
+
+            net.setInput(faceblob, "image_face");
+            net.setInput(lefteyeblob, "image_left");
+            net.setInput(righteyeblob, "image_right");
+            net.setInput(faceGrid, "facegrid");
+
+            Mat out = net.forward();
+            Log.d("iota", out.toString());
+
 
         }
 
