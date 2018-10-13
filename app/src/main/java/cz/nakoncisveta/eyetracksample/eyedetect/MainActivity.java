@@ -417,10 +417,12 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
                 Mat righteyeblob = Dnn.blobFromImage(rightEye, IN_SCALE_FACTOR, size, RIGHT_MEAN, false, false);
                 Mat faceblob = Dnn.blobFromImage(faceCrop, IN_SCALE_FACTOR, size, FACE_MEAN, false, false);
 
-                Log.d("TRYANDWIN", ("Face Array type: "+ faceCrop.get(0,0)));
+                Log.d("TRYANDWIN", ("Face Array type: "+ faceCrop));
 
                 faceGrid = getFaceGrid(r, mRgba);
-                Mat facegridblob = Dnn.blobFromImage(faceGrid, 1, new Size(1,625), new Scalar(0,0), true, true);
+
+                Mat facegridblob = Dnn.blobFromImage(faceGrid, 1, new Size(1,1), new Scalar(0,0), false, false);
+                Log.d("dims", "" +   facegridblob.get(0,0));
                 net.setInput(faceblob, "image_face");
                 net.setInput(lefteyeblob, "image_left");
                 net.setInput(righteyeblob, "image_right");
@@ -618,7 +620,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
 
         double[] vals = {1, grid_W*grid_H, 1, 1};
-        Mat face_grid = new Mat(625, 1, CvType.CV_64F,Scalar.all(0));
+        Mat face_grid = new Mat(625, 1, CvType.CV_32F,Scalar.all(0));
 
         for(int i=xLo;i<xHi;i++){
             for(int j=yLo; j< yHi ;j++){
