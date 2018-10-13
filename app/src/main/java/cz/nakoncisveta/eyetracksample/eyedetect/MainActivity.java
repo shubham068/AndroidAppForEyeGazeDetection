@@ -335,17 +335,24 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         MatOfRect faces = new MatOfRect();
 
         if (mDetectorType == JAVA_DETECTOR) {
-            if (mJavaDetector != null)
+            if (mJavaDetector != null) {
                 mJavaDetector.detectMultiScale(mGray, faces, 1.1, 2, 2, // TODO: objdetect.CV_HAAR_SCALE_IMAGE
                         new Size(mAbsoluteFaceSize, mAbsoluteFaceSize), new Size());
+                Log.d("TRYANDWIN", ("Faces Size: " + String.valueOf(faces.size())) );
+            }
         }
         else {
             Log.e(TAG, "Detection method is not selected!");
         }
 
         Rect[] facesArray = faces.toArray();
+        Log.d("TRYANDWIN", ("Face Array length: "+ String.valueOf(facesArray.length)));
+
+
         for (int i = 0; i < facesArray.length; i++)
-        {	Imgproc.rectangle(mRgba, facesArray[i].tl(), facesArray[i].br(),
+        {
+            //facesArray[i].
+            Imgproc.rectangle(mRgba, facesArray[i].tl(), facesArray[i].br(),
                 FACE_RECT_COLOR, 3);
             xCenter = (facesArray[i].x + facesArray[i].width + facesArray[i].x) / 2;
             yCenter = (facesArray[i].y + facesArray[i].y + facesArray[i].height) / 2;
@@ -371,6 +378,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
                     + (r.width - 2 * r.width / 16) / 2,
                     (int) (r.y + (r.height / 4.5)),
                     (r.width - 2 * r.width / 16) / 2, (int) (r.height / 3.0));
+
             // draw the area - mGray is working grayscale mat, if you want to
             // see area in rgb preview, change mGray to mRgba
             Imgproc.rectangle(mRgba, eyearea_left.tl(), eyearea_left.br(),
@@ -378,7 +386,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             Imgproc.rectangle(mRgba, eyearea_right.tl(), eyearea_right.br(),
                     new Scalar(255, 0, 0, 255), 2);
 
-            if (learn_frames < 5) {
+            if (learn_frames < 10) {
                 teplateR = get_template(mJavaDetectorEye, eyearea_right, 24);
                 teplateL = get_template(mJavaDetectorEye, eyearea_left, 24);
                 learn_frames++;
@@ -388,38 +396,40 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
                 match_eye(eyearea_right, teplateR, method);
                 match_eye(eyearea_left, teplateL, method);
 
-            }
 
-
-
-            // cut eye areas and put them to zoom windows
+                // cut eye areas and put them to zoom windows
             /*Imgproc.resize(mRgba.submat(eyearea_left), mZoomWindow2,
                     mZoomWindow2.size());
             Imgproc.resize(mRgba.submat(eyearea_right), mZoomWindow,
                     mZoomWindow.size());*/
 
-            leftEye = mRgba.submat(eyearea_left);
+                leftEye = mRgba.submat(eyearea_left);
 
-            rightEye = mRgba.submat(eyearea_right);
+                rightEye = mRgba.submat(eyearea_right);
 
-            faceCrop = mRgba.submat(r);
+                faceCrop = mRgba.submat(r);
 
-//            Log.d("PRINT", ( String.valueOf(leftEye.get(0, 0)[0])));
-           /* org.opencv.core.Core.subtract(leftEye, new Scalar(255,255,255), leftEye);
-            Log.d("PRINT", ( String.valueOf(leftEye.get(100, 100)[0])));*/
+                Log.d("TRYANDWIN", "Line 412 " + ( String.valueOf(leftEye.get(0, 0)[0])));
+                 //org.opencv.core.Core.subtract(leftEye, new Scalar(255,255,255), leftEye);
+                Log.d("TRYANDWIN", "Eye pixel: " + ( String.valueOf(leftEye.get(100, 100)[0])));
 
-            Mat lefteyeblob = Dnn.blobFromImage(leftEye, IN_SCALE_FACTOR, size, LEFT_MEAN, true, true); // CHECKKARNAHAI see whether to swap R and B
-            Mat righteyeblob = Dnn.blobFromImage(rightEye, IN_SCALE_FACTOR, size, RIGHT_MEAN, true, true);
-            Mat faceblob = Dnn.blobFromImage(faceCrop, IN_SCALE_FACTOR, size, FACE_MEAN, true, true);
-            faceGrid = getFaceGrid(r, mRgba);
+                Mat lefteyeblob = Dnn.blobFromImage(leftEye, IN_SCALE_FACTOR, size, LEFT_MEAN, true, true); // CHECKKARNAHAI see whether to swap R and B
+                Mat righteyeblob = Dnn.blobFromImage(rightEye, IN_SCALE_FACTOR, size, RIGHT_MEAN, true, true);
+                Mat faceblob = Dnn.blobFromImage(faceCrop, IN_SCALE_FACTOR, size, FACE_MEAN, true, true);
 
-            net.setInput(faceblob, "image_face");
-            net.setInput(lefteyeblob, "image_left");
-            net.setInput(righteyeblob, "image_right");
-            net.setInput(faceGrid, "facegrid");
+                Log.d("TRYANDWIN", ("Face Array length: "+ String.valueOf(facesArray.length)));
 
-            Mat out = net.forward();
-            Log.d("iota", out.toString());
+                faceGrid = getFaceGrid(r, mRgba);
+
+                net.setInput(faceblob, "image_face");
+                net.setInput(lefteyeblob, "image_left");
+                net.setInput(righteyeblob, "image_right");
+                net.setInput(faceGrid, "facegrid");
+
+                Mat out = net.forward();
+                Log.d("iota", out.toString());
+
+            }
 
 
         }
@@ -578,16 +588,34 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         int face_w = face.width;
         int face_h = face.height;
 
-        float scale_x = grid_W/frame_w;
-        float scale_y = grid_H/frame_h;
+        float scale_x = (float)grid_W/frame_w;
+        float scale_y = (float)grid_H/frame_h;
+
+        Log.d("TRYANDWIN","Face x values :\n" + (face.x));
+        Log.d("TRYANDWIN","Face y values :\n" + (face.y));
+        Log.d("TRYANDWIN","Face width values :\n" + (face.width));
+        Log.d("TRYANDWIN","Face heigth values :\n" + (face.height));
+
+        Log.d("TRYANDWIN","frame_w values :\n" + (frame_w));
+        Log.d("TRYANDWIN","frame_h values :\n" + (frame_h));
+
+        Log.d("TRYANDWIN","Face scale_x values :\n" + scale_x);
+
+
 
         int xLo = (int) (scale_x * face.x);
+        Log.d("TRYANDWIN","Face xLo values :\n" + xLo);
+
         int yLo = (int) (scale_y * face.y);
         int w = (int) (face_w * scale_x);
+        Log.d("TRYANDWIN","Face width values :\n" + w);
+
         int h = (int) (face_h * scale_y);
         int xHi,yHi;
         xHi = xLo + w;
         yHi = yLo + h;
+
+
 
 
         Mat face_grid = new Mat(grid_W, grid_H, CvType.CV_64F,Scalar.all(0));
@@ -598,7 +626,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             }
         }
 
-        Log.d("PRINTA",face_grid.dump());
+        Log.d("TRYANDWIN","Face Grid :\n" + face_grid.dump());
 
 //        face_grid.dump();
 
