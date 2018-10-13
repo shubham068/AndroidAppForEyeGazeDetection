@@ -411,20 +411,20 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
                 Log.d("TRYANDWIN", "Line 412 " + ( String.valueOf(leftEye.get(0, 0)[0])));
                  //org.opencv.core.Core.subtract(leftEye, new Scalar(255,255,255), leftEye);
-                Log.d("TRYANDWIN", "Eye pixel: " + ( String.valueOf(leftEye.get(100, 100)[0])));
+//                Log.d("TRYANDWIN", "Eye pixel: " + ( String.valueOf(leftEye.get(100, 100)[0])));
 
-                Mat lefteyeblob = Dnn.blobFromImage(leftEye, IN_SCALE_FACTOR, size, LEFT_MEAN, true, true); // CHECKKARNAHAI see whether to swap R and B
-                Mat righteyeblob = Dnn.blobFromImage(rightEye, IN_SCALE_FACTOR, size, RIGHT_MEAN, true, true);
-                Mat faceblob = Dnn.blobFromImage(faceCrop, IN_SCALE_FACTOR, size, FACE_MEAN, true, true);
+                Mat lefteyeblob = Dnn.blobFromImage(leftEye, IN_SCALE_FACTOR, size, LEFT_MEAN, false, false); // CHECKKARNAHAI see whether to swap R and B
+                Mat righteyeblob = Dnn.blobFromImage(rightEye, IN_SCALE_FACTOR, size, RIGHT_MEAN, false, false);
+                Mat faceblob = Dnn.blobFromImage(faceCrop, IN_SCALE_FACTOR, size, FACE_MEAN, false, false);
 
-                Log.d("TRYANDWIN", ("Face Array length: "+ String.valueOf(facesArray.length)));
+                Log.d("TRYANDWIN", ("Face Array type: "+ faceCrop.get(0,0)));
 
                 faceGrid = getFaceGrid(r, mRgba);
-
+                Mat facegridblob = Dnn.blobFromImage(faceGrid, 1, new Size(1,625), new Scalar(0,0), true, true);
                 net.setInput(faceblob, "image_face");
                 net.setInput(lefteyeblob, "image_left");
                 net.setInput(righteyeblob, "image_right");
-                net.setInput(faceGrid, "facegrid");
+                net.setInput(facegridblob, "facegrid");
 
                 Mat out = net.forward();
                 Log.d("iota", out.toString());
@@ -617,12 +617,12 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
 
 
-
-        Mat face_grid = new Mat(grid_W, grid_H, CvType.CV_64F,Scalar.all(0));
+        double[] vals = {1, grid_W*grid_H, 1, 1};
+        Mat face_grid = new Mat(625, 1, CvType.CV_64F,Scalar.all(0));
 
         for(int i=xLo;i<xHi;i++){
             for(int j=yLo; j< yHi ;j++){
-                face_grid.put(i,j,1);
+                face_grid.put(i*25+j,0, 1);
             }
         }
 
