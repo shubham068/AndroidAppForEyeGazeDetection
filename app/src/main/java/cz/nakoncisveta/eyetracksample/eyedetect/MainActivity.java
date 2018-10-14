@@ -402,7 +402,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
                     mZoomWindow2.size());
             Imgproc.resize(mRgba.submat(eyearea_right), mZoomWindow,
                     mZoomWindow.size());*/
-
+                Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_RGBA2RGB);
                 leftEye = mRgba.submat(eyearea_left);
 
                 rightEye = mRgba.submat(eyearea_right);
@@ -417,19 +417,21 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
                 Mat righteyeblob = Dnn.blobFromImage(rightEye, IN_SCALE_FACTOR, size, RIGHT_MEAN, false, false);
                 Mat faceblob = Dnn.blobFromImage(faceCrop, IN_SCALE_FACTOR, size, FACE_MEAN, false, false);
 
-                Log.d("TRYANDWIN", ("Face Array type: "+ faceCrop));
+                Log.d("TRYANDWIN", ("Face Array type: "+ net.getUnconnectedOutLayers()));
 
                 faceGrid = getFaceGrid(r, mRgba);
 
-                Mat facegridblob = Dnn.blobFromImage(faceGrid, 1, new Size(1,1), new Scalar(0,0), false, false);
-                Log.d("dims", "" +   facegridblob.get(0,0));
+                Mat facegridblob = Dnn.blobFromImage(faceGrid, 1, new Size(1,625), new Scalar(0,0), false, false);
+                java.util.List<Mat> images = new java.util.ArrayList<Mat>(25);
+                Dnn.imagesFromBlob(faceblob, images);
+                Log.d("dims", "" +  images.toString());
                 net.setInput(faceblob, "image_face");
                 net.setInput(lefteyeblob, "image_left");
                 net.setInput(righteyeblob, "image_right");
                 net.setInput(facegridblob, "facegrid");
 
                 Mat out = net.forward();
-                Log.d("iota", out.toString());
+                Log.d("iota", "x="+ out.get(0,0)[0] + " y=" + out.get(0,1)[0]);
 
             }
 

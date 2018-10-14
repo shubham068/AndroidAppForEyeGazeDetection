@@ -16,8 +16,8 @@ input_dim: 224
 input_dim: 224
 input: "facegrid"
 input_dim: 256
-input_dim: 625
 input_dim: 1
+input_dim: 625
 input_dim: 1
 layer {
   name: "conv1"
