@@ -357,7 +357,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             xCenter = (facesArray[i].x + facesArray[i].width + facesArray[i].x) / 2;
             yCenter = (facesArray[i].y + facesArray[i].y + facesArray[i].height) / 2;
             Point center = new Point(xCenter, yCenter);
-
+            Log.i("xcircle", String.valueOf(xCenter));
+            Log.i("ycircle", String.valueOf(yCenter));
             Imgproc.circle(mRgba, center, 10, new Scalar(255, 0, 0, 255), 3);
 
             Imgproc.putText(mRgba, "[" + center.x + "," + center.y + "]",
@@ -432,7 +433,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
                 Mat out = net.forward();
                 Log.d("iota", "x="+ out.get(0,0)[0] + " y=" + out.get(0,1)[0]);
-
+                Point gazePoint = new Point(out.get(0,0)[0]*100, out.get(0,1)[0]*100+700);
+                Imgproc.circle(mRgba, gazePoint, 20, new Scalar(255, 0, 0, 255), 3);
             }
 
 
