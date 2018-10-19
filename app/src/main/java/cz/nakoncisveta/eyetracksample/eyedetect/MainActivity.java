@@ -432,19 +432,19 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
                 faceGrid = getFaceGrid(r, mRgba);
 
-                Mat facegridblob = Dnn.blobFromImage(faceGrid, 1, new Size(1,625), new Scalar(0,0), false, false);
+                //Mat facegridblob = Dnn.blobFromImage(faceGrid, 1, new Size(1,625), new Scalar(0,0), false, false);
                 java.util.List<Mat> images = new java.util.ArrayList<Mat>(25);
                 Dnn.imagesFromBlob(faceblob, images);
                 Log.d("dims", "" +  images.toString());
                 net.setInput(faceblob, "image_face");
                 net.setInput(lefteyeblob, "image_left");
                 net.setInput(righteyeblob, "image_right");
-                net.setInput(facegridblob, "facegrid");
+                ///net.setInput(facegridblob, "facegrid");
 
-                Mat out = net.forward();
-                Log.d("iota", "x="+ out.get(0,0)[0] + " y=" + out.get(0,1)[0]);
-                Point gazePoint = new Point(200.0 * out.get(0,0)[0], out.get(0,1)[0]*200.0+700.0);
-                Imgproc.circle(mRgba, gazePoint, 20, new Scalar(255, 0, 0, 255), 3);
+//                Mat out = net.forward();
+//                Log.d("iota", "x="+ out.get(0,0)[0] + " y=" + out.get(0,1)[0]);
+//                Point gazePoint = new Point(200.0 * out.get(0,0)[0], out.get(0,1)[0]*200.0+700.0);
+//                Imgproc.circle(mRgba, gazePoint, 20, new Scalar(255, 0, 0, 255), 3);
             }
 
 
