@@ -96,7 +96,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     private String[]               mDetectorName;
 
     private float                  mRelativeFaceSize   = 0.2f;
-    private int mAbsoluteFaceSize = 0;
+    private int mAbsoluteFaceSizeR = 0;
+    private int mAbsoluteFaceSizeC = 0;
+
 
     private CameraBridgeViewBase   mOpenCvCameraView;
     private SeekBar mMethodSeekbar;
@@ -321,10 +323,17 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         mRgba = inputFrame.rgba();
         mGray = inputFrame.gray();
 
-        if (mAbsoluteFaceSize == 0) {
+        if (mAbsoluteFaceSizeR == 0 || mAbsoluteFaceSizeC == 0) {
             int height = mGray.rows();
+            int width = mGray.cols();
+            Log.d("TRYANDWIND", " "+ height + "\n");
+            Log.d("TRYANDWIND", " "+ width + "\n");
+
+            // TRYANDWIN what is this!!??
             if (Math.round(height * mRelativeFaceSize) > 0) {
-                mAbsoluteFaceSize = Math.round(height * mRelativeFaceSize);
+                mAbsoluteFaceSizeR = Math.round(height * mRelativeFaceSize);
+                mAbsoluteFaceSizeC = Math.round(width * mRelativeFaceSize);
+
             }
 
         }
@@ -336,8 +345,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
         if (mDetectorType == JAVA_DETECTOR) {
             if (mJavaDetector != null) {
-                mJavaDetector.detectMultiScale(mGray, faces, 1.1, 2, 2, // TODO: objdetect.CV_HAAR_SCALE_IMAGE
-                        new Size(mAbsoluteFaceSize, mAbsoluteFaceSize), new Size());
+                mJavaDetector.detectMultiScale(mGray, faces, 1.1, 2, 4, // TODO: objdetect.CV_HAAR_SCALE_IMAGE
+                        new Size(mAbsoluteFaceSizeR, mAbsoluteFaceSizeC), new Size());
                 Log.d("TRYANDWIN", ("Faces Size: " + String.valueOf(faces.size())) );
             }
         }
@@ -357,8 +366,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             xCenter = (facesArray[i].x + facesArray[i].width + facesArray[i].x) / 2;
             yCenter = (facesArray[i].y + facesArray[i].y + facesArray[i].height) / 2;
             Point center = new Point(xCenter, yCenter);
-            Log.i("xcircle", String.valueOf(xCenter));
-            Log.i("ycircle", String.valueOf(yCenter));
+            Log.i("TRYANDWINxcircle", String.valueOf(xCenter));
+            Log.i("TRYANDWINycircle", String.valueOf(yCenter));
             Imgproc.circle(mRgba, center, 10, new Scalar(255, 0, 0, 255), 3);
 
             Imgproc.putText(mRgba, "[" + center.x + "," + center.y + "]",
@@ -392,6 +401,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
                 teplateL = get_template(mJavaDetectorEye, eyearea_left, 24);
                 learn_frames++;
             } else {
+                //learn_frames = 10;
                 // Learning finished, use the new templates for template
                 // matching
                 match_eye(eyearea_right, teplateR, method);
@@ -433,7 +443,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
                 Mat out = net.forward();
                 Log.d("iota", "x="+ out.get(0,0)[0] + " y=" + out.get(0,1)[0]);
-                Point gazePoint = new Point(out.get(0,0)[0]*100, out.get(0,1)[0]*100+700);
+                Point gazePoint = new Point(200.0 * out.get(0,0)[0], out.get(0,1)[0]*200.0+700.0);
                 Imgproc.circle(mRgba, gazePoint, 20, new Scalar(255, 0, 0, 255), 3);
             }
 
@@ -470,7 +480,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
     private void setMinFaceSize(float faceSize) {
         mRelativeFaceSize = faceSize;
-        mAbsoluteFaceSize = 0;
+        mAbsoluteFaceSizeR = 0;
+        mAbsoluteFaceSizeC = 0;
     }
 
     private void CreateAuxiliaryMats() {
@@ -597,26 +608,28 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         float scale_x = (float)grid_W/frame_w;
         float scale_y = (float)grid_H/frame_h;
 
-        Log.d("TRYANDWIN","Face x values :\n" + (face.x));
-        Log.d("TRYANDWIN","Face y values :\n" + (face.y));
-        Log.d("TRYANDWIN","Face width values :\n" + (face.width));
-        Log.d("TRYANDWIN","Face heigth values :\n" + (face.height));
-
         Log.d("TRYANDWIN","frame_w values :\n" + (frame_w));
         Log.d("TRYANDWIN","frame_h values :\n" + (frame_h));
 
+        Log.d("TRYANDWIN","Face xLo values :\n" + (face.x));
+        Log.d("TRYANDWIN","Face yLo values :\n" + (face.y));
+
+        Log.d("TRYANDWIN","Face width values :\n" + (face.width));
+        Log.d("TRYANDWIN","Face heigth values :\n" + (face.height));
+
         Log.d("TRYANDWIN","Face scale_x values :\n" + scale_x);
+        Log.d("TRYANDWIN","Face scale_y values :\n" + scale_y);
 
 
 
-        int xLo = (int) (scale_x * face.x);
+        int xLo = (int) (scale_y * face.x);
         Log.d("TRYANDWIN","Face xLo values :\n" + xLo);
 
-        int yLo = (int) (scale_y * face.y);
-        int w = (int) (face_w * scale_x);
+        int yLo = (int) (scale_x * face.y);
+        int w = (int) (face_w * scale_y);
         Log.d("TRYANDWIN","Face width values :\n" + w);
 
-        int h = (int) (face_h * scale_y);
+        int h = (int) (face_h * scale_x);
         int xHi,yHi;
         xHi = xLo + w;
         yHi = yLo + h;
@@ -624,15 +637,27 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
 
         double[] vals = {1, grid_W*grid_H, 1, 1};
-        Mat face_grid = new Mat(625, 1, CvType.CV_32F,Scalar.all(0));
+//        Mat face_grid = new Mat(625, 1, CvType.CV_32F,Scalar.all(0));
+//
+//        for(int i=xLo;i<xHi;i++){
+//            for(int j=yLo; j< yHi ;j++){
+//                face_grid.put(i*25+j,0, 1);
+//            }
+//        }
+
+
+        Mat face_grid = new Mat(grid_W, grid_H, CvType.CV_64F,Scalar.all(0));
 
         for(int i=xLo;i<xHi;i++){
             for(int j=yLo; j< yHi ;j++){
-                face_grid.put(i*25+j,0, 1);
+                face_grid.put(i,j,1);
             }
         }
 
         Log.d("TRYANDWIN","Face Grid :\n" + face_grid.dump());
+
+
+//        Log.d("TRYANDWIN","Face Grid :\n" + face_grid.dump());
 
 //        face_grid.dump();
 
